@@ -1,0 +1,9 @@
+short_desc "the Poebel prize!"
+long_desc "You see nothing special."
+value 0
+local_weight 0
+name 0
+alias_name "prize"
+read_msg 0
+info 0
+inst "testsafjddng"

@@ -1,0 +1,335 @@
+/* 
+     Nemesis Press Agency      15.September 1991
+                             by Jolly alias Pat  
+*/
+      
+
+
+#include "room.h"
+
+#define PLAYERNAME call_other(this_player(),"query_name")
+#undef  EXTRA_RESET
+#define EXTRA_RESET extra_reset(arg);
+
+
+
+string members  ;              
+int    mcounter ;
+                   
+int    ncounter ;
+string news     ;
+
+
+int    ccounter ;
+                   
+int    scounter ;
+string splayer  ;
+object sitem    ;
+int    svalue   ;
+int    chiffre  ;
+
+int    i        ;
+int    flag     ;
+int    abc      ;
+string pobj     ;
+object item     ;
+int    fprice   ;  
+
+
+
+
+/***************** roomverwaltung ******************/
+
+
+ONE_EXIT("players/junky/room/north2"     ,"east",
+
+         "npa (entre')",
+
+         "Nemesis Press Agency.\n"+
+         "A sign reads : Issues of the famous Joker Journal\n"+
+         "               will cost you only 20 coins !\n"+
+         "               Type : gimme\n"+
+         "",1)
+
+extra_reset(arg) { if(arg) return;
+                   items =({"sign","U should know what it reads !"});
+                   members=allocate(51);
+                   mcounter=0;
+ 
+                   news = allocate(10);
+                   ncounter=0;
+                                  
+                   ccounter= 1734;
+                   splayer = allocate(10);
+                   sitem   = allocate(10);
+                   svalue  = allocate(10);
+                   chiffre = allocate(10);
+                   scounter= 0;
+                 }
+
+init() { ::init();
+         add_action("give","gimme");
+       }                              
+
+give() { object ob;
+         if( call_other(this_player(),"query_money") < 20 ) return 1;
+         if( present("joker journal",this_player()) )
+         {  write("You cannot buy two journals.\n");
+            return 1;  
+         }
+         call_other(this_player(),"add_money",-20);
+         ob = clone_object("players/jolly/obj/jj");         
+         move_object(ob,this_player());             
+         write("You have now the latest issue of the Joker - Journal\n");
+         say( (this_player()->query_name())+" owns now a Joker-Journal\n");
+         return 1;
+       }
+
+
+
+
+
+/***************** memberverwaltung ****************/  
+
+
+
+test_members(str){ update_members();
+                   flag=0;
+                   for(i=1;i<=mcounter;i+=1)
+                   if(members[i]==str) flag=i;
+                   if(!flag) return ;                   
+                   return 1;
+                 }
+
+
+inc_members(str) { if( test_members(str) )
+                   { write("You are already a member !\n");
+                     return ;
+                   }
+                   mcounter+=1;
+                   members[mcounter] = str ;
+                   return 1;
+                 }
+                       
+
+dec_members(str) {
+                   if(!test_members(str))
+                   { write("You are no member !\n");
+                     return;
+                   }
+                   mcounter-=1;
+                   for(i=flag;i<=mcounter;i+=1)
+                   members[i]=members[i+1];
+                   return 1;
+                 }                  
+
+
+list_members()   { update_members();
+                   if(mcounter==0) {write("No members.\n");return 1;}
+                   write("Members of the Joker-Journal. ("+mcounter+")\n");
+                   for(i=1;i<=mcounter;i+=1) 
+                   write( members[i]+" \n");
+                   return 1 ;
+                 }     
+
+
+ 
+update_members() { flag=0;
+                   if(!mcounter) return;
+                   for(i=1;i<=mcounter;i+=1)
+                   if( !find_living(lower_case(members[i])) ) flag=i;
+                   
+                   if( !flag) {
+                      for(i=1;i<=mcounter;i+=1)
+                   if(!present("joker journal",
+                       find_living(lower_case(members[i])))) flag=i;
+                      }     
+
+                   if(flag)
+                   { kill_members(flag);
+                     update_members();  
+                     return 1;
+                   }
+                   update_sell();
+                   return 1;
+                 } 
+
+
+kill_members(a)  { mcounter-=1;
+                   for(i=a;i<=mcounter;i+=1)
+                   members[i]=members[i+1];
+                 }
+ 
+
+
+/***************** newsverwaltung ******************/
+
+
+
+
+
+adv_news(obj,str){ update_members();
+                   if(ncounter==9) kill_news(1);
+                   ncounter+=1;
+                   news[ncounter] =("++npa+++news+++npa+++news+++"+          
+                   "from :"+(obj->query_name())+"\n"+str+"\n");
+
+                   for(i=1;i<=mcounter;i+=1)
+                   { pobj =find_living(lower_case(members[i]));
+                     if( pobj && (pobj!=obj) )
+                     tell_object(pobj,news[ncounter]);
+                   }  
+                   return 1;
+                 }
+                  
+
+kill_news(a)     { ncounter-=1;
+                   for(i=a;i<=ncounter;i+=1)
+                   news[i]=news[i+1];
+                   return 1;
+                 }  
+
+                   
+list_news(obj)   { if(!ncounter){
+                     tell_object(obj,"No news.\n");
+                     return 1;
+                   }
+                   tell_object(obj,"The last "+ncounter+" news :\n");
+                      for(i=1;i<=ncounter;i+=1)
+                  tell_object(obj,news[i]);  
+                   return 1;
+                 }
+
+
+                   
+list_sell(obj)   { update_members();
+                   if(!scounter){
+                     tell_object(obj,"No sellings.\n");
+                     return 1;
+                   }
+                   for(i=1;i<=scounter;i+=1)
+                   write_sell(obj,i);
+                   return 1;
+                 } 
+          
+
+
+write_sell(obj,i)
+          { 
+            if(sitem[i]) {
+            tell_object(obj,"++npa+++sell+++npa+++sell+++\n"+
+            splayer[i]+" sells "+(sitem[i]->short())+"\n"+
+            " Value : "+(sitem[i]->query_value())+" here only : "+svalue[i]+
+            " Chiffre :"+chiffre[i]+"\n");
+            }
+          }
+
+
+adv_sell(pobj,item,fprice)
+          { update_members();
+            if(scounter==9) kill_sell(1);
+            scounter+=1;
+            ccounter+=173;
+            splayer[scounter] = pobj;
+            sitem[scounter]   = item;
+            svalue[scounter]  = fprice;
+            chiffre[scounter] = ccounter;
+            for(i=1;i<=mcounter;i+=1)
+            if(pobj!=members[i]) 
+            write_sell(find_living(lower_case(members[i])),scounter);
+            return 1;
+          }    
+          
+     
+update_sell()
+          { if(!scounter) return 1;
+
+            flag=0;
+            for(i=1;i<=scounter;i+=1)
+            if( !find_living(lower_case(splayer[i])) ) flag=i;
+            if(flag)
+            { kill_sell(flag);
+              update_sell();
+              return 1;
+            }   
+            for(i=1;i<=scounter;i+=1)
+            if( !(sitem[i]) )
+            { kill_sell(i);
+              update_sell();
+              return 1;
+            }
+            for(i=1;i<=scounter;i+=1)
+            if( sitem[i])
+           {
+            if(!present(sitem[i],find_living(lower_case(splayer[i]))))
+            { kill_sell(i);
+              update_sell();
+              return 1;
+            }
+            }
+            return 1;                               
+          }
+
+
+kill_sell(abc) 
+          { scounter-=1;
+            for(i=abc;i<=scounter;i+=1)
+            { splayer[i] = splayer[i+1];
+              sitem[i]   = sitem[i+1]  ;
+              svalue[i]  = svalue[i+1] ;  
+              chiffre[i] = chiffre[i+1];
+            }
+            return 1;
+          }
+
+
+adv_buy(item,str)  
+
+         {  int test;
+            int zaehler;
+            
+            update_members();
+            str =str+" test";    
+            sscanf(str,"%d test",test);
+            zaehler=test;
+            i=0;
+            for(test=1;test<=scounter;test+=1) 
+               if (zaehler==chiffre[test]) i=test;
+            
+            if(!i){ tell_object(item,"Sorry this chiffre doesn't exist\n");
+                    return 1;
+            }
+       
+            if(!present(sitem[i],find_living(lower_case(splayer[i]))))
+            { update_members();
+              tell_object(item,"Sorry, but the seller dropped that item.\n");
+              kill_sell(i);
+              return 1;
+            }
+            
+            str = svalue[i];
+            str = str+" test";
+            sscanf(str,"%d test",test);
+            if( test > item->query_money() )
+            { tell_object(item,"Where is your money ?\n");
+              return 1;
+            }
+
+            zaehler=transfer(sitem[i],item);
+            if (zaehler > 2)
+            { kill_sell(i); 
+              tell_object(item,"Sorry cannot get the item.\n");
+              return 1;
+            }
+            if(zaehler==1)
+            { tell_object(item,"Too heavy for you .\n");  
+              return 1;
+            }
+            tell_object(item,"You get "+( sitem[i]->short() )+".\n");
+            item->add_money(-test);
+            item=find_living(lower_case(splayer[i]));
+            tell_object(item,"You get "+test+" gc from the Joker-Journal\n");
+            item->add_money(test);
+            kill_sell(i);
+            update_members();
+       }

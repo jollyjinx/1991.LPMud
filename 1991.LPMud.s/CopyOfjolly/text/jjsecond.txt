@@ -1,0 +1,11 @@
+The second Edition of the Joker Journal
+
+- There should be no errors with drop jj and sell jj any more.
+- If you advertise the same object twice, only the newest version
+  will be advertised.
+- If a operator makes a channel public again the history will be
+  cleared ( like the /clear cmd.)
+- Statues can't be members any more.
+- I am for the FFOI ( free flow of information ), so erveybody can
+  get the sources.
+                                         Jolly Roger B)

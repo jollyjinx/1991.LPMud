@@ -1,0 +1,405 @@
+/*
+     Joker - Journal           12. december 1991
+                             by Jolly alias Pat
+*/
+
+
+
+#define PLAYERNAME call_other(this_player(),"query_name")
+#define PLAYEROBJ this_player()
+
+
+
+
+
+int    gc        ;
+object item      ;
+int    fprice    ;
+int    rprice    ;
+string str       ;                  
+string teststr   ;               
+int silent       ;
+
+
+
+/*************** normal funktions *******************/
+
+
+
+
+
+id(str)    {  if ( str=="joker journal" || str=="journal"
+                   || str=="newspaper"  || str=="jj" )
+              return 1;
+              return 0;
+           }
+              
+taken()    { if(!present("joker journal",this_player() ))
+             { write("You have to take it first\n");
+               return 0;
+             }
+             return 1;
+           }
+
+
+get()      {  return 1 ; }
+              
+
+                  /* silent drop idea from frederick */
+drop(silent) { if(silent) return 1;
+               if(query_verb()!="drop") return 1;
+               if( (!silent) && (member()) )
+              { write("Members can't drop the Joker-Journal.\n");
+                return 1;
+              }
+           }
+              
+
+query_value() { if(member()) return 0 ;
+                return 10;
+              }
+
+ 
+reset(arg) {
+	if (arg) return;
+}
+
+                         
+
+init()     {  add_action("jjhel"       ,"help");    
+              add_action("jjsub"  ,"subscribe");
+              add_action("jjsub"        ,"sub");
+              add_action("jjlea"      ,"leave");
+              add_action("jjbuy"        ,"buy");
+              add_action("jjadv"  ,"advertise"); 
+              add_action("jjadv"        ,"adv");
+              add_action("jjrea"       ,"read");
+              add_action("jjinf"       ,"info");
+              add_action("jjlis"       ,"list");
+              add_action("jjclo"       ,"clone");
+           }
+           
+
+jjhel(str) { if(!str || !id(str) ) return;
+             long();
+             return 1;
+           }
+
+jjsub(str) { if(!str || !id(str) ) return;   
+             if(!taken()){ return 1;}
+             startmember();
+             return 1;
+           } 
+                                                                    
+
+jjlea(str) { if(!str || !id(str) ) return;
+             if(!taken()){return 1;}
+             stopmember();
+             return 1;
+           }     
+
+jjbuy(str) { if(!str || !id(str) ) return; 
+             if(!taken()){return 1;}
+             if(!member()){ write("Members only !\n");return 1;}
+             write("Chiffre:");
+             input_to("buy");
+             return 1;
+           }
+
+jjadv(str) { if(!str || !id(str) ) return; 
+             if(!taken()){return 1;}
+             if(!member()){ write("Members only !\n");return 1;}
+             advertising();
+             return 1;
+           }              
+
+jjrea(str) { if(!str || !id(str) ) return; 
+             if(!taken()){ return 1;}
+             if(!member()){ write("Members only !\n");return 1;}
+             read();
+             return 1;
+           }
+                   
+jjinf(str) { if(!str || !id(str) ) return;
+             if(!taken()){ return 1;}
+             info();
+             return 1;
+           } 
+           
+jjlis(str) { if(!str || !id(str) ) return; 
+             if(!taken()){ return 1;}
+             if(!member()){ write("Members only !\n");return 1;}
+             listmember();
+             return 1;
+           }
+
+jjclo(str) { if(!str || !id(str) ) return;
+             if(!taken()) return 1;
+             if(!member()){write("Members only !\n");return 1;}
+             clonejj();
+             return 1;
+           }
+ 
+
+
+
+short()    {  return "The Joker-Journal" ;} 
+
+long()     {  say(PLAYERNAME+" examines the Joker-Journal.\n");
+              write(" The Joker-Journal \n\n"+
+                    "The following commands are provided :\n"+  
+                    "       help journal ( this page )\n"+
+                    "       info journal\n"+
+                    "       read journal\n"+
+                    "       buy  journal\n"+
+                    "(adv)ertise journal\n"+
+                    "(sub)scribe journal ( costs you one coin ! )\n"+
+                    "      leave journal\n"+
+                    "       list journal ( lists subscribers )\n"+  
+                    "      clone journal ( costs you 20 coins !)\n"+
+                    "Instead of journal you can type jj\n");
+              return 1;
+           }
+    
+
+
+info(str)  {  say(PLAYERNAME+" reads the Joker-Journal.\n");
+              write("The Joker-Journal          (Issue #1.o4 12.dec.91)\n\n"+
+                    "You can sell items with the J-J all over Nemesis,\n"+
+                    "without meeting the purchaser! The only thing you,\n"+
+                    "have to do is: advertise in the J-J.\n\n"+
+                    "What do you think about this journal ?\n"+
+                    "Mail me or in urgent cases ask Sepp\n"+
+                    "for help.         pubished by Jolly Roger\n");
+              return 1;
+           }
+
+
+costs(gc)  { if( gc > call_other(this_player(),"query_money") ) 
+             { write("You are too low on money.\n");
+                return 0;
+             }
+             call_other(this_player(),"add_money",-gc);
+             return 1;
+           }
+
+
+
+
+/***************** memberactions ********************/
+
+
+
+query_auto_load() { if(!member()) return;
+                    return"/players/jolly/obj/jj.c:";
+                  }
+
+init_arg()  { call_other("/players/jolly/room/npa",
+                         "inc_members",PLAYERNAME);
+              return 1;
+            }
+
+member()    { if( call_other("/players/jolly/room/npa"
+                  ,"test_members",PLAYERNAME)  )  return 1;
+            }
+
+
+
+startmember()
+       { if( !costs(1) ) return 1;
+         if(call_other("/players/jolly/room/npa","inc_members",PLAYERNAME))
+         { write("WoW ! You are now a member of the Joker-Journal. \n");
+           say(PLAYERNAME+" is now member of the Joker-Journal.\n");         
+           return 1;
+         }
+         return 1; 
+       }
+
+
+stopmember(){ if(!call_other("/players/jolly/room/npa",
+                             "dec_members",PLAYERNAME)   ) return 1;
+              write("You do not subscribe the J-J any more.\n");
+              say(PLAYERNAME+" left the membership of the Joker-Journal.\n");
+              return 1;
+            }
+
+
+
+listmember(){ call_other("/players/jolly/room/npa","list_members");
+              return 1;
+            }
+
+
+
+/***************news and advertising stuff ************/
+
+
+                                                       
+
+
+
+read(str)   { say(PLAYERNAME+" reads the Joker-Journal.\n");
+              write("Topics : (n)ews (s)ellings\n");
+              input_to("read_menue");
+              return 1;
+            }
+
+
+read_menue(str)
+            { 
+              if((str=="n")||(str=="news")) 
+                { call_other("/players/jolly/room/npa",
+                             "list_news",PLAYEROBJ); 
+                  return 1;
+                }
+              if((str=="s")||(str=="sellings"))
+                { call_other("/players/jolly/room/npa",
+                             "list_sell",PLAYEROBJ);
+                  return 1;
+                }         
+
+/* next version will ma!e this
+              if((str=="g")||(str=="globalnews")||(str=="global"))
+                { call_other("/players/jolly/room/npa",
+                             "list_globalnews");
+                  return 1;
+                } 
+*/
+              return 1;
+            }
+
+
+advertising() 
+            { say(PLAYERNAME+" advertises in the Joker-Journal.\n");
+              write("What kind of advertising ?\n");
+              write("(n)ews,(s)ellings\n");
+              input_to("adv_menue");
+              return 1;
+            } 
+ 
+
+adv_menue(str)
+            { 
+              if((str=="n") || (str=="news"))
+              { write("Ok. You have the space of one line for your news.\n");
+                input_to("adv_news"); 
+                return 1;
+              }
+              if((str=="s") || (str=="sellings"))
+              { write("Itemname :"); 
+                input_to("adv_sell");
+              }      
+              return 1;
+            }                        
+
+
+adv_news(str)
+            {
+              if(!str) return 1;
+              call_other("/players/jolly/room/npa",
+                         "adv_news",PLAYEROBJ,str);
+              return 1;
+            }
+
+
+adv_sell(str)
+            {
+              if(!str) return 1;
+              item = present(str,this_player());
+              if(!item) 
+              { write("You do not have such an item.\n");
+                return 1;
+              }
+              if (is_drink(item) || has_drink(item))
+              { write("You may not sell drinks.\n");
+                return 1;
+              }
+              if( item->id("key") )
+              {  write("Sorry, maybe this key will help\n");
+                 write("       imprisoned people to flee. \n");
+                  return 1;
+               }
+              rprice = call_other(item,"query_value");
+              if(rprice==0)
+              { write("You cannot sell valueless items.\n");
+                return 1;
+              }
+              write("Value of "+str+" : "+rprice+"\n");
+              write("How much do you want to get :");
+              input_to("adv_price");
+              return 1;
+            } 
+
+adv_price(str)
+            {
+              if(!str) return 1;
+              if(str=="") return 1;
+              fprice=test_cheat(str);
+              if(!fprice)
+              {  write("Why do u try to cheat ? (mail it to me)\n");
+                 write_file("/players/jolly/obj/jjcheat","str:"+
+                             str+" from:"+PLAYERNAME+"\n");
+                 return 1;
+              }
+               if(fprice>200)
+              {
+              if( (fprice/2) > ( call_other(item,"query_value") ) )
+               { write("No extraordinary prices accepted.\n");
+                 return 1;
+               }
+              }
+              fprice=str;           
+              write("OK ! We will try to sell it for you!\n");
+              call_other("/players/jolly/room/npa",
+                         "adv_sell",PLAYERNAME,item,str);
+              return 1;
+            } 
+
+test_cheat(str) {
+                   string legal;
+                   int   a,b,flag,number;
+                   legal=({"0","1","2","3","4","5","6","7","8","9"});
+                   for(a=0;a<strlen(str);a++)
+                   { 
+                     flag=0;
+                     for(b=0;b<10;b++)
+                     if(extract(str,a,a)==legal[b]) flag=1;
+                     if(!flag) return;
+                   }
+                   sscanf(str,"%d",number);
+                   return number;
+                 }
+buy(str)    { say(PLAYERNAME+" reads the Joker-Journal.\n");
+              if(!str)
+                 { write("So sorry but i cannot read your thoughts.\n");
+                  return 1;
+                }
+              call_other("/players/jolly/room/npa",
+                         "adv_buy",PLAYEROBJ,str);
+              return 1;
+            }
+
+
+clonejj()  { if(!costs(20)) return 1;
+             item= clone_object("/players/jolly/obj/jj");
+             move_object(item,environment(this_player()));
+             write("You cloned a Joker-Journal.\n");
+             say(PLAYERNAME+" cloned a Joker-Journal.\n");
+             return 1;
+           }
+
+has_drink(obj) {
+     int count;
+     object ob;
+
+     ob = first_inventory(obj);
+     while(ob) {
+        if (is_drink(ob) && !ob->is_empty()) count++;
+        if (call_other(ob,"can_put_and_get")) count += has_drink(ob);
+        ob = next_inventory(ob);
+     }
+     return count;
+}
+
+is_drink(ob) { return explode(file_name(ob),"#")[0] == "obj/drink" ||
+		ob->id("drink"); }

@@ -1,0 +1,18 @@
+Expanded Command Set of the Joker Journal
+
+/list        = list all channels
+/join chn    = join channel
+/leave       = leave channel
+/recap (chn) = you can read the last entrys in channel   (sells updated)
+/ text       = sends a message to all users in your channel
+/msg who what= sends a message to that user ( see /costs for the costs )
+
+/topic text  = sets the topic of your private channel   (operators only)
+/clear       = clear the history of the channel         (operators only)
+/private     = makes your channel to a private one      (operators only) *
+/invite name = only invited people can come to private  (operators only)
+               channels
+/throw name  = throw player out                         (operators only)
+/op name     = give operator status to player name      (operators only)
+
+* toggles between both possibilities

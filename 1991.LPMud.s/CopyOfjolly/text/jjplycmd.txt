@@ -1,0 +1,18 @@
+Standard Commands of the Joker Journal :
+
+/help        = this page
+/info        = same as examine jj
+/second      = differences to the first edition
+/docs        = shows you the new commands 
+/typo text   = send a bug or typomessage to Jolly
+
+/joker name  = clone a journal for player name    *             
+/sub         = subscribe the Journal              *
+/quit        = leave the membership
+/members     = list all subscribers ( operator have a star )
+
+/news text   = sends a text to the news-channel   *
+/adv item    = advertise item                     *
+/chiffre ##  = buy item                           *
+ 
+* See /costs for the actual costs in this mud 
